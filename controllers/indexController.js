@@ -1,6 +1,8 @@
 
 const passport = require("passport");
 const db = require("../db/queries");
+const bcrypt = require("bcryptjs");
+const pool = require("../db/pool");
 
 
 async function indexHomeGet(req, res) {
@@ -15,26 +17,23 @@ async function indexSignUpFormGet(req, res) {
 
 async function indexSignUpFormPost(req, res, next) {
     try {
-        const { username, password } = req.body
-        await db.insertUsername(username, password)
+        //const { username, password } = req.body
+        const hashedPassword = await bcrypt.hash(req.body.password, 10);
+        await pool.query("insert into users (username, password) values ($1, $2)", [req.body.username, hashedPassword]);
         res.redirect("/");
     } catch(err) {
-        return next(err);
+        console.error(error);
+        next(error);
     }
 };
 
-async function indexAuthenticateLogin(req, res) {
+ 
 
-    passport.authenticate("local", {
-        successRedirect: "/",
-        failureRedirect: "/"    
-    })
-};
 
 
 module.exports = {
     indexHomeGet,
     indexSignUpFormGet,
     indexSignUpFormPost,
-    indexAuthenticateLogin
+    
 };
